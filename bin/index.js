@@ -39,5 +39,5 @@ if (!ALLOWED_DEP_TYPES.some(allowedDepType => depType === allowedDepType)) {
 }
 
 const result = updateMonorepo(scope, depType, registry)
-console.log(`Updated ${result.length} packages: \n\n${result.join(', ')}\n\n`)
+console.log(`Updated ${result.length} packages:   n${result.join(', ')}`)
 process.exit(0)

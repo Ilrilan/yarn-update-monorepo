@@ -21,11 +21,18 @@ function updateMonorepo(namespace, depType, registry) {
 
     const updatedPackages = []
 
-    function getLatestVersion(packageName) {
-        const outpupt = shell(`yarn info --json ${packageName} --registry ${registry}`, { cwd, stdio: 'pipe', encoding: 'utf-8' })
-        const infoJSON = JSON.parse(outpupt)
+    const packageVersions = []
 
-        return infoJSON.data['dist-tags'].latest
+    function getLatestVersion(packageName) {
+        if (!packageVersions[packageName]) {
+            console.log(`Getting version for ${packageName} package:`)
+            const output = shell(`yarn info --json ${packageName} --registry ${registry}`, { cwd, stdio: 'pipe', encoding: 'utf-8' })
+            const infoJSON = JSON.parse(output)
+
+            packageVersions[packageName] = infoJSON.data['dist-tags'].latest
+            console.log(`         found ${packageVersions[packageName]}`)
+        }
+        return packageVersions[packageName]
     }
 
     function filterPlatformDeps(dependencies) {
@@ -49,7 +56,7 @@ function updateMonorepo(namespace, depType, registry) {
         Object.keys(platformDeps).forEach((dep) => {
             const latestVersion = getLatestVersion(dep)
 
-            dependencies[dep] = depType === ('minor' ? '^' : '') + latestVersion
+            dependencies[dep] = (depType === 'minor' ? '^' : '') + latestVersion
         })
     }
 
@@ -62,9 +69,11 @@ function updateMonorepo(namespace, depType, registry) {
 
         const platformDeps = filterPlatformDeps(packageJSON.dependencies)
 
-        if (!platformDeps || platformDeps.length === 0) {
+        if (!platformDeps || Object.keys(platformDeps).length === 0) {
             return
         }
+
+        console.log(`Processing ${packageJSON.name} dependencies: found ${Object.keys(platformDeps).length} packages`)
 
         calculateUndefinedVersionDeps(platformDeps)
         fillLatestVersionsDeps(packageJSON.dependencies, platformDeps)
