@@ -3,10 +3,15 @@
 const { writeFileSync } = require('fs')
 const { findPackageJSON } = require('./get-workspaces')
 const { shell } = require('./utils')
+const os = require('os')
 
-const pwd = process.cwd()
 
-function updateMonorepo(namespace, depType) {
+const pathToUnixPath =
+    os.platform() === 'win32' ? (str) => str.replace(/\\/g, '/') : (str) => str
+
+const cwd = pathToUnixPath(process.cwd())
+
+function updateMonorepo(namespace, depType, registry) {
 
     /**
      * Ключ - название пакета из пространства namespace
@@ -17,7 +22,7 @@ function updateMonorepo(namespace, depType) {
     const updatedPackages = []
 
     function getLatestVersion(packageName) {
-        const outpupt = shell(`yarn info --json ${packageName}`, { pwd, stdio: 'pipe', encoding: 'utf-8' })
+        const outpupt = shell(`yarn info --json ${packageName} --registry ${registry}`, { cwd, stdio: 'pipe', encoding: 'utf-8' })
         const infoJSON = JSON.parse(outpupt)
 
         return infoJSON.data['dist-tags'].latest
@@ -48,7 +53,7 @@ function updateMonorepo(namespace, depType) {
         })
     }
 
-    findPackageJSON(pwd).forEach((packageJSONPath) => {
+    findPackageJSON(cwd).forEach((packageJSONPath) => {
         const packageJSON = require(packageJSONPath)
 
         if (!packageJSON || !packageJSON.dependencies) {
