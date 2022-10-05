@@ -1,0 +1,17 @@
+{
+  "name": "yarn-update-monorepo",
+  "version": "0.1.0",
+  "main": "bin/update-monorepo.js",
+  "bin": {
+    "update-monorepo": "bin/index.js"
+  },
+  "scripts": {
+  },
+  "repository": "https://github.com/Ilrilan/yarn-update-monorepo",
+  "author": "Ilrilan <ilrilan2@gmail.com>",
+  "dependencies": {
+    "args": "^5.0.1"
+  },
+  "devDependencies": {
+  }
+}
