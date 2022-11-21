@@ -65,11 +65,14 @@ function updateMonorepo(namespace, depType, registry, fixedVersion) {
         if (!dependencies) {
             return
         }
-        Object.keys(platformDeps).forEach((dep) => {
-            const latestVersion = getLatestVersion(dep)
+        const platformDepsKeys = Object.keys(platformDeps)
+        Object.keys(dependencies)
+            .filter(depName => platformDepsKeys.indexOf(depName) !== -1)
+            .forEach((dep) => {
+                const latestVersion = getLatestVersion(dep)
 
-            dependencies[dep] = (depType === 'minor' ? '^' : '') + latestVersion
-        })
+                dependencies[dep] = (depType === 'minor' ? '^' : '') + latestVersion
+            })
     }
 
     findPackageJSON(cwd).forEach((packageJSONPath) => {
