@@ -11,7 +11,7 @@ const pathToUnixPath =
 
 const cwd = pathToUnixPath(process.cwd())
 
-function updateMonorepo(namespace, depType, registry) {
+function updateMonorepo(namespace, depType, registry, fixedVersion) {
 
     /**
      * Ключ - название пакета из пространства namespace
@@ -25,12 +25,21 @@ function updateMonorepo(namespace, depType, registry) {
 
     function getLatestVersion(packageName) {
         if (!packageVersions[packageName]) {
-            console.log(`Getting version for ${packageName} package:`)
-            const output = shell(`yarn info --json ${packageName} --registry ${registry}`, { cwd, stdio: 'pipe', encoding: 'utf-8' })
-            const infoJSON = JSON.parse(output)
+            if (!fixedVersion) {
+                console.log(`Getting version for ${packageName} package:`)
+                const output = shell(`yarn info --json ${packageName} --registry ${registry}`, {
+                    cwd,
+                    stdio: 'pipe',
+                    encoding: 'utf-8'
+                })
+                const infoJSON = JSON.parse(output)
 
-            packageVersions[packageName] = infoJSON.data['dist-tags'].latest
-            console.log(`         found ${packageVersions[packageName]}`)
+                packageVersions[packageName] = infoJSON.data['dist-tags'].latest
+                console.log(`         found ${packageVersions[packageName]}`)
+            } else {
+                console.log(`Version for ${packageName} is fixed: ${fixedVersion}`)
+                return fixedVersion
+            }
         }
         return packageVersions[packageName]
     }
@@ -53,6 +62,9 @@ function updateMonorepo(namespace, depType, registry) {
             })
     }
     function fillLatestVersionsDeps(dependencies, platformDeps) {
+        if (!dependencies) {
+            return
+        }
         Object.keys(platformDeps).forEach((dep) => {
             const latestVersion = getLatestVersion(dep)
 
@@ -63,11 +75,15 @@ function updateMonorepo(namespace, depType, registry) {
     findPackageJSON(cwd).forEach((packageJSONPath) => {
         const packageJSON = require(packageJSONPath)
 
-        if (!packageJSON || !packageJSON.dependencies) {
+        if (!packageJSON || (!packageJSON.dependencies && !packageJSON.devDependencies && !packageJSON.peerDependencies)) {
             return
         }
 
-        const platformDeps = filterPlatformDeps(packageJSON.dependencies)
+        const platformDeps = {
+            ...filterPlatformDeps(packageJSON.dependencies || {}),
+            ...filterPlatformDeps(packageJSON.devDependencies || {}),
+            ...filterPlatformDeps(packageJSON.peerDependencies || {})
+        }
 
         if (!platformDeps || Object.keys(platformDeps).length === 0) {
             return
@@ -77,6 +93,8 @@ function updateMonorepo(namespace, depType, registry) {
 
         calculateUndefinedVersionDeps(platformDeps)
         fillLatestVersionsDeps(packageJSON.dependencies, platformDeps)
+        fillLatestVersionsDeps(packageJSON.devDependencies, platformDeps)
+        fillLatestVersionsDeps(packageJSON.peerDependencies, platformDeps)
         writeFileSync(packageJSONPath, JSON.stringify(packageJSON, null, 2) + '\n', { encoding: 'utf-8' })
 
         updatedPackages.push(packageJSON.name)
