@@ -1,16 +1,18 @@
 {
   "name": "yarn-update-monorepo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "bin/update-monorepo.js",
   "bin": {
-    "update-monorepo": "bin/index.js"
+    "update-monorepo": "bin/index.js",
+    "clean-yarnlock": "bin/clean-yarn-lock.js"
   },
   "scripts": {
   },
   "repository": "https://github.com/Ilrilan/yarn-update-monorepo",
   "author": "Ilrilan <ilrilan2@gmail.com>",
   "dependencies": {
-    "args": "^5.0.1"
+    "args": "^5.0.1",
+    "@yarnpkg/lockfile": "^1.1.0"
   },
   "devDependencies": {
   }
