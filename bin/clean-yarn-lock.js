@@ -32,9 +32,20 @@ let updatedPackages = 0
 Object.keys(lockFileObj)
     .filter(depName => depName.indexOf(scope) !== -1)
     .forEach(depName => {
-        updatedPackages++
-        //console.log(`Removing dep to ${depName}`)
-        delete lockFileObj[depName]
+        const depObj = lockFileObj[depName]
+        let hasStrictDeps = false
+        if (depObj && depObj.dependencies) {
+            Object.keys(depObj.dependencies).forEach(innerDepName => {
+                const innerDepVersion = depObj.dependencies[innerDepName]
+                if (innerDepName.indexOf(scope) === 0 && innerDepVersion[0] !== '^') {
+                    hasStrictDeps = true
+                }
+            })
+        }
+        if (hasStrictDeps) {
+            updatedPackages++
+            delete lockFileObj[depName]
+        }
     })
 
 if (updatedPackages > 0) {
