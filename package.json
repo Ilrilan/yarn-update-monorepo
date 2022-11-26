@@ -1,6 +1,6 @@
 {
   "name": "yarn-update-monorepo",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "main": "bin/update-monorepo.js",
   "bin": {
     "update-monorepo": "bin/index.js",
@@ -12,7 +12,8 @@
   "author": "Ilrilan <ilrilan2@gmail.com>",
   "dependencies": {
     "args": "^5.0.1",
-    "@yarnpkg/lockfile": "^1.1.0"
+    "@yarnpkg/lockfile": "^1.1.0",
+    "rc": "^1.2.8"
   },
   "devDependencies": {
   }

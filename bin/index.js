@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 
 const args = require('args');
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 const { updateMonorepo } = require('../src/update-monorepo')
 
 const ALLOWED_DEP_TYPES = ['strict', 'minor'];
+
+const pathToUnixPath =
+    os.platform() === 'win32' ? (str) => str.replace(/\\/g, '/') : (str) => str
 
 args.options([
     {
@@ -24,7 +30,9 @@ args.options([
     }
 ])
 
-const { scope, depType, registry, fixedVersion } = args.parse(process.argv);
+const parsedArgs = args.parse(process.argv);
+const { scope, depType, fixedVersion } = parsedArgs
+let { registry } = parsedArgs
 
 if (!scope) {
     throw new Error('Scope for updating deps is not defined! Example: update-monorepo -s @babel -d minor');
@@ -38,7 +46,16 @@ if (fixedVersion) {
     console.log(`Fixed version set, quering to npm registry disabled`)
 } else {
     if (!registry) {
-        throw new Error('Registry param must be defined')
+        if (fs.existsSync(pathToUnixPath(path.resolve(path.join(process.cwd(), '.npmrc'))))) {
+            const npmConf = require('rc')('npm', {})
+            if (npmConf.registry) {
+                registry = npmConf.registry
+                console.log(`Read registry url from .npmrc: ${registry}`)
+            }
+        }
+        if (!registry) {
+            throw new Error('Registry is not defined. Use param "-r" or write it in the .npmrc file in the current directory')
+        }
     }
 }
 
