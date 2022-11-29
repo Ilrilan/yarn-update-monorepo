@@ -24,7 +24,7 @@ Flags:
 
 - `-s` - namespace for cleaning dependency records
 
-##Examples
+## Examples
 
 - `yarn update-monorepo -d strict -s @babel` - find all `@babel/` deps in current monorepo and bump it to latest strict versions
 - `yarn update-monorepo -d minor -s @babel -r https://myRegistry` - find all `@babel/` deps in current monorepo and bump it to latest minor versions, working with `https://myRegistry` 
