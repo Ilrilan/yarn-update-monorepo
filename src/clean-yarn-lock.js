@@ -1,4 +1,5 @@
 const lockfile = require("@yarnpkg/lockfile");
+const fs = require('fs')
 
 function cleanYarnLock(scope, pathToLockFile) {
     const lockFileContent = fs.readFileSync(pathToLockFile, {encoding: 'utf-8'})
@@ -30,7 +31,7 @@ function cleanYarnLock(scope, pathToLockFile) {
         const dedupedContent = lockfile.stringify(lockFileObj)
         fs.writeFileSync(pathToLockFile, dedupedContent, {encoding: 'utf-8'})
     } else {
-        console.log(`Not found strings in ${scope}, yarn.lock was not modified`)
+        console.log(`Not found strings with strict deps in ${scope}, yarn.lock modification doesn't need`)
     }
 }
 

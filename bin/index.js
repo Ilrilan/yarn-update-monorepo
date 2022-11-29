@@ -5,6 +5,7 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const { updateMonorepo } = require('../src/update-monorepo')
+const { cleanYarnLock } = require('../src/clean-yarn-lock')
 
 const ALLOWED_DEP_TYPES = ['strict', 'minor'];
 
@@ -29,13 +30,13 @@ args.options([
         description: 'Fixed version for all packages (for canary releases)'
     },
     {
-        name: 'cleanYarnLock',
+        name: 'cleanYarnLockFlag',
         description: 'flag to cleaning yarn.lock from unused deps in scope in same command'
     }
 ])
 
 const parsedArgs = args.parse(process.argv);
-const { scope, depType, fixedVersion, cleanYarnLock } = parsedArgs
+const { scope, depType, fixedVersion, cleanYarnLockFlag } = parsedArgs
 let { registry } = parsedArgs
 
 if (!scope) {
@@ -68,7 +69,7 @@ if (!ALLOWED_DEP_TYPES.some(allowedDepType => depType === allowedDepType)) {
 }
 
 let pathToLockFile
-if (cleanYarnLock) {
+if (cleanYarnLockFlag) {
     pathToLockFile = path.resolve(process.cwd(), 'yarn.lock')
     if (!fs.existsSync(pathToLockFile)) {
         throw new Error(`Yarn lock file not found in ${pathToLockFile}`)
@@ -78,7 +79,7 @@ if (cleanYarnLock) {
 const result = updateMonorepo(scope, depType, registry, fixedVersion)
 console.log(`Updated ${result.length} packages:   n${result.join(', ')}`)
 
-if (cleanYarnLock) {
+if (cleanYarnLockFlag) {
     cleanYarnLock(scope, pathToLockFile)
 }
 
