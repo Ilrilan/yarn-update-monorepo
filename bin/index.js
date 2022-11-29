@@ -27,11 +27,15 @@ args.options([
     {
         name: 'fixedVersion',
         description: 'Fixed version for all packages (for canary releases)'
+    },
+    {
+        name: 'cleanYarnLock',
+        description: 'flag to cleaning yarn.lock from unused deps in scope in same command'
     }
 ])
 
 const parsedArgs = args.parse(process.argv);
-const { scope, depType, fixedVersion } = parsedArgs
+const { scope, depType, fixedVersion, cleanYarnLock } = parsedArgs
 let { registry } = parsedArgs
 
 if (!scope) {
@@ -63,6 +67,18 @@ if (!ALLOWED_DEP_TYPES.some(allowedDepType => depType === allowedDepType)) {
     throw new Error(`Dependency type can be only "strict" or "minor"`)
 }
 
+if (cleanYarnLock) {
+    const pathToLockFile = path.resolve(process.cwd(), 'yarn.lock')
+    if (!fs.existsSync(pathToLockFile)) {
+        throw new Error(`Yarn lock file not found in ${pathToLockFile}`)
+    }
+}
+
 const result = updateMonorepo(scope, depType, registry, fixedVersion)
 console.log(`Updated ${result.length} packages:   n${result.join(', ')}`)
+
+if (cleanYarnLock) {
+    cleanYarnLock(scope, pathToLockFile)
+}
+
 process.exit(0)
