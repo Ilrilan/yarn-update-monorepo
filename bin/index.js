@@ -67,8 +67,9 @@ if (!ALLOWED_DEP_TYPES.some(allowedDepType => depType === allowedDepType)) {
     throw new Error(`Dependency type can be only "strict" or "minor"`)
 }
 
+let pathToLockFile
 if (cleanYarnLock) {
-    const pathToLockFile = path.resolve(process.cwd(), 'yarn.lock')
+    pathToLockFile = path.resolve(process.cwd(), 'yarn.lock')
     if (!fs.existsSync(pathToLockFile)) {
         throw new Error(`Yarn lock file not found in ${pathToLockFile}`)
     }
