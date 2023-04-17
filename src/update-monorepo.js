@@ -27,15 +27,21 @@ function updateMonorepo(namespace, depType, registry, fixedVersion) {
         if (!packageVersions[packageName]) {
             if (!fixedVersion) {
                 console.log(`Getting version for ${packageName} package:`)
-                const output = shell(`yarn info --json ${packageName} --registry ${registry}`, {
+                const textCommand = `yarn info --json ${packageName} --registry ${registry}`
+                const output = shell(textCommand, {
                     cwd,
                     stdio: 'pipe',
                     encoding: 'utf-8'
                 })
-                const infoJSON = JSON.parse(output)
+                try {
+                    const infoJSON = JSON.parse(output)
 
-                packageVersions[packageName] = infoJSON.data['dist-tags'].latest
-                console.log(`         found ${packageVersions[packageName]}`)
+                    packageVersions[packageName] = infoJSON.data['dist-tags'].latest
+                    console.log(`         found ${packageVersions[packageName]}`)
+                } catch (e) {
+                    console.error(`Cannot parse yarn info! Try to execute command "${textCommand}", response must be in JSON format`)
+                    throw e
+                }
             } else {
                 console.log(`Version for ${packageName} is fixed: ${fixedVersion}`)
                 return fixedVersion
